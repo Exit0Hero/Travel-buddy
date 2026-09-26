@@ -221,6 +221,7 @@ const KNOWN_TOKENS = new Set([
   "z-map-popup", "map-z",
   // motion
   "ease-out-soft", "ease-in-out", "ease-feedback", "dur-fast", "dur-base", "dur-feedback",
+  "ease-confirm", "ease-reject", "ease-settle",
   "skeleton-min",
   // layout
   "focus-ring-width", "focus-ring-offset", "tap-target-min", "measure-prose",

@@ -277,6 +277,37 @@
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /* layout shifts. 240ms */
   --ease-feedback: cubic-bezier(0.34, 1.3, 0.64, 1); /* the meter filling. 320ms */
 
+  /* ---------------------------------------------------------------------
+     6b. MOTION — the three curves that carry MEANING.
+
+     The audit behind these: the codebase had three easing tokens and none of
+     them said what a motion was FOR. `--ease-feedback` was doing duty as a
+     generic "pop", which is how a pass and a fail end up animating identically
+     — the exact thing this product must never do, because accent and alarm are
+     semantic and a shared curve erases the difference.
+
+     So: one curve per verdict, and the verdict is in the name.
+
+       confirm  a thing passed. Resolves forward, decelerating, with a small
+                amount of overshoot — the same character as `--ease-feedback`,
+                because a pass should feel like the meter filling.
+       reject   a thing failed. Decelerates HARD and stops dead, with no
+                overshoot at all. A failure that springs looks like a bug being
+                celebrated. The asymmetry between these two curves is the whole
+                point: you can tell pass from fail with the colour stripped out.
+       settle   something arrived and is now at rest. A long, gentle tail. Used
+                for entrances, where the content is the thing that moved.
+
+     These are ADDITIVE. The three original curves keep their names and their
+     existing call sites, because `--ease-feedback` on the FitMeter is load
+     bearing and renaming it would be churn for no gain. The duration scale is
+     likewise unchanged — it was already one coherent scale of three steps, so
+     Phase 0 adds no fourth step and no fourth duration.
+     --------------------------------------------------------------------- */
+  --ease-confirm: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-reject: cubic-bezier(0.4, 0, 1, 1);
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+
   --dur-fast: 180ms;
   --dur-base: 240ms;
   --dur-feedback: 320ms;
@@ -377,12 +408,23 @@
    a component that relied on an animation end-event stranded. We also drop
    the durations, so anything that reads a timing value gets 0.
    ----------------------------------------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --dur-fast: 0.01ms;
-    --dur-base: 0.01ms;
-    --dur-feedback: 0.01ms;
-  }
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --dur-fast: 0.01ms;
+      --dur-base: 0.01ms;
+      --dur-feedback: 0.01ms;
+      /*
+        The curves collapse as well as the durations. This is not belt-and-braces:
+        a spring or a hard-stop curve applied to a near-zero duration still
+        renders an intermediate frame in some engines, so a caller reading
+        `--ease-confirm` under reduced motion would still get a spring. Linear
+        plus 0.01ms is the only combination guaranteed to produce the resting
+        state directly.
+      */
+      --ease-confirm: linear;
+      --ease-reject: linear;
+      --ease-settle: linear;
+    }
 
   *,
   *::before,
@@ -394,12 +436,18 @@
   }
 }
 
-/* Same override, for a user toggle in the app. */
-:root[data-motion="reduced"] {
-  --dur-fast: 0.01ms;
-  --dur-base: 0.01ms;
-  --dur-feedback: 0.01ms;
-}
+  /* Same override, for a user toggle in the app. */
+  :root[data-motion="reduced"] {
+    --dur-fast: 0.01ms;
+    --dur-base: 0.01ms;
+    --dur-feedback: 0.01ms;
+    /* Curves too, for the same reason as the media query above. The in-app
+       toggle has to be as strong as the OS preference, or the toggle is a lie
+       for anyone who sets it. */
+    --ease-confirm: linear;
+    --ease-reject: linear;
+    --ease-settle: linear;
+  }
 
 :root[data-motion="reduced"] *,
 :root[data-motion="reduced"] *::before,
@@ -598,6 +646,11 @@ body {
   --ease-out-soft: var(--ease-out-soft);
   --ease-in-out: var(--ease-in-out);
   --ease-feedback: var(--ease-feedback);
+  /* The three verdict curves, bridged so a component writes
+     `ease-[var(--ease-reject)]` rather than an inline transition. */
+  --ease-confirm: var(--ease-confirm);
+  --ease-reject: var(--ease-reject);
+  --ease-settle: var(--ease-settle);
 
   /* The named z-scale, so `z-modal` and `z-map-marker` exist as utilities and a
      bare `z-50` is never the shortest path. */

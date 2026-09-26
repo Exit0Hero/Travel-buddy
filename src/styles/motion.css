@@ -1,0 +1,227 @@
+/* ==========================================================================
+   MOTION — keyframes and shared motion utilities
+
+   Phase 0 of the motion plan: this file and the three components in
+   `src/components/ui/motion/` exist, but NOTHING here is applied to a product
+   surface yet. Phase 1 wires them into primitives, Phase 2 into feature
+   surfaces. So this commit must produce no visual change, and it does not — the
+   utilities below are opt-in and currently unreferenced.
+
+   WHY A SEPARATE FILE. `tokens.css` owns values. This owns behaviour. A curve
+   and a keyframe are different kinds of fact, and putting keyframes next to
+   tokens is how a token file turns into a stylesheet nobody dares edit.
+
+   THE ONE RULE IN THIS FILE: every animation is inside
+   `@media (prefers-reduced-motion: no-preference)`.
+
+   That is the whole safety story, and it is a media query rather than a JS
+   check on purpose. `tokens.css` already collapses durations to 0.01ms under
+   reduced motion, which handles transitions. It does NOT handle keyframes that
+   are driven by `animation-timeline: view()` — a scroll-driven animation
+   ignores duration entirely, because it is bound to scroll position and not to
+   time. A scroll-linked reveal is therefore fully live under reduced motion
+   unless it is explicitly switched off, which is exactly the regression the plan
+   says must not happen. Gating at the definition is the only place that cannot
+   be forgotten by a later caller.
+
+   `src/components/ui/motion/useReducedMotion.ts` exists for the cases CSS
+   cannot express — chiefly a caller that needs to skip WORK, not just skip an
+   animation, such as a stream that would otherwise enqueue per-line timers.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---------------------------------------------------------------------
+     Verdicts.
+
+     `confirm` overshoots slightly and settles. `reject` decelerates hard and
+     stops dead. The asymmetry is deliberate and load-bearing: with the colour
+     removed, a pass and a fail must still be distinguishable, because this
+     product encodes meaning in colour and the motion has to carry it too.
+     --------------------------------------------------------------------- */
+  @keyframes motion-confirm {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes motion-reject {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.375rem, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  /* An explicit sideways shake, for a rejection that has to be felt rather
+     than read. `--dur-fast` only: a shake that outlasts its own point is
+     noise, not feedback. */
+  @keyframes motion-shake {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    22% {
+      transform: translate3d(-0.25rem, 0, 0);
+    }
+    58% {
+      transform: translate3d(0.1875rem, 0, 0);
+    }
+    84% {
+      transform: translate3d(-0.0625rem, 0, 0);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     Entrances.
+
+     `settle` is the long-tailed one. It is what content uses when it arrives:
+     the content moved, so the motion should be generous and then stop.
+     --------------------------------------------------------------------- */
+  @keyframes motion-settle {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.75rem, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes motion-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes motion-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     Scroll reveals.
+
+     `cover` rather than `entry`: the element is already partly on screen when
+     the range begins, which means the animation has finished by the time it is
+     properly in view. The ranges are deliberately short so a reveal reads as
+     "this arrived" rather than "this is playing a video".
+     --------------------------------------------------------------------- */
+  @keyframes motion-reveal {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 1.25rem, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+}
+
+/* ==========================================================================
+   UTILITIES
+
+   All of them opt-in, all of them animated only under
+   `prefers-reduced-motion: no-preference`, and all of them ending in the
+   resting state. An animation whose `to` is not the resting state leaves the
+   page in a permanently displaced condition if it is interrupted, which is the
+   single most common way hand-written motion rots.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- verdicts */
+.motion-confirm {
+  animation: motion-confirm var(--dur-feedback) var(--ease-confirm) both;
+}
+
+.motion-reject {
+  animation: motion-reject var(--dur-base) var(--ease-reject) both;
+}
+
+.motion-shake {
+  animation: motion-shake var(--dur-fast) var(--ease-reject) both;
+}
+
+/* --------------------------------------------------------------- entrances */
+.motion-settle {
+  animation: motion-settle var(--dur-base) var(--ease-settle) both;
+}
+
+.motion-fade-in {
+  animation: motion-fade var(--dur-base) var(--ease-out-soft) both;
+}
+
+.motion-fade-out {
+  animation: motion-fade-out var(--dur-base) var(--ease-out-soft) both;
+}
+
+/* ---------------------------------------------------------- scroll reveals */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .motion-reveal {
+      animation: motion-reveal linear both;
+      animation-timeline: view();
+      animation-range: cover 6% cover 30%;
+    }
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION — the second half of the contract.
+
+   The definition block above already stops existing. This half is for the
+   utilities themselves, so that a caller who adds `.motion-settle` to a page
+   served WITHOUT this stylesheet, or one whose build strips the media block,
+   still degrades to the resting state rather than to nothing at all.
+
+   Explicitly NOT `animation: none`. That is the Kage bug this repo already hit
+   once: `animation: none` on an element that relies on `animationend` strands
+   the component, because the event it is waiting for never fires. `both` fill
+   removed in its place, with the resting state as the declared value, means the
+   element is simply in its final state and any listener attached to the
+   animation must not be the only way that state is reached. `CrossFade` and
+   `StaggerList` are both written with that in mind.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .motion-confirm,
+  .motion-reject,
+  .motion-shake,
+  .motion-settle,
+  .motion-fade-in,
+  .motion-fade-out,
+  .motion-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The in-app motion switch writes `data-motion="reduced"` on the root, which is
+   the same promise made by the OS-level query above. Both, or the toggle is a
+   lie for anyone who sets it. */
+:root[data-motion="reduced"] .motion-confirm,
+:root[data-motion="reduced"] .motion-reject,
+:root[data-motion="reduced"] .motion-shake,
+:root[data-motion="reduced"] .motion-settle,
+:root[data-motion="reduced"] .motion-fade-in,
+:root[data-motion="reduced"] .motion-fade-out,
+:root[data-motion="reduced"] .motion-reveal {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}

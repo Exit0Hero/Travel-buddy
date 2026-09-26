@@ -2,6 +2,7 @@
    primitives that no single component should own. */
 @import "tailwindcss";
 @import "./tokens.css";
+@import "./motion.css";
 
 /* Contributes content globs only — the theme is declared in tokens.css. */
 @config "../../tailwind.config.ts";
