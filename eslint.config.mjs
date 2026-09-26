@@ -40,6 +40,11 @@ const config = [
       "data/**",
       ".opencode/**",
       "next-env.d.ts",
+      // The Kage document and assets served for /experience, copied verbatim
+      // out of @designcodeio/threeui. Third-party bytes, and the bundled
+      // Three.js runtime is minified — reformatting it to satisfy a linter
+      // would break the file for no gain.
+      "public/landing-pages/**",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),

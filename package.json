@@ -38,7 +38,9 @@
     "react-map-gl": "^8.0.0",
     "lucide-react": "^0.469.0",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^3.0.0"
+    "tailwind-merge": "^3.0.0",
+    "@designcodeio/threeui": "^1.2.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "typescript": "~5.9.3",

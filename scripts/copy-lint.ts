@@ -47,6 +47,10 @@ const IGNORED_DIRS = new Set([
   ".github",
   "graphify-out",
   "graphify-systems-out",
+  // The /experience route group: an isolated third-party visual whose prose is
+  // its author's, not Athiti's. Exempted at the GROUP level, and the group is
+  // unique in this repo, so this covers exactly one route.
+  "(marketing)",
 ]);
 
 const SCANNED = new Set([".ts", ".tsx"]);

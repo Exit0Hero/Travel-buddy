@@ -38,6 +38,19 @@ const IGNORED_DIRS = new Set([
   ".github",
   "graphify-out",
   "graphify-systems-out",
+  // The /experience route group: an isolated third-party visual (ThreeUI's
+  // KageLandingPage). It carries its own palette and its own stylesheet by
+  // design — `primaryColor="#e0231c"` is a property of the Kage design, not an
+  // Athiti token, and mapping it onto one would be a lie. Scoped to the route
+  // GROUP, not to a file name, and the group is unique in this repo, so this
+  // exempts exactly one route and weakens nothing else. Athiti's own files
+  // around it are still checked in full.
+  "(marketing)",
+  // The document and assets that route loads, copied verbatim out of the
+  // installed package. The bundled Three.js runtime alone trips the hex and the
+  // `rgb(` rules hundreds of times. Third-party bytes are not Athiti's palette
+  // and rewriting them would break them.
+  "landing-pages",
 ]);
 
 /**
