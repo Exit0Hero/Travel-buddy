@@ -1,0 +1,71 @@
+name: ci
+
+# TASKS.md working agreements: "main must always typecheck", and
+# DESIGN_SYSTEM §6: "Put it in CI." A design system without a gate is a mood
+# board, and TREK's own token guarantee decayed into an inline hex the moment
+# nobody enforced it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # NOT `npm ci`, and this is a known open defect rather than a preference.
+      #
+      # The committed package-lock.json has 23 of 609 entries with no `version`
+      # field, so `npm ci` aborts with "Invalid Version:" (verified: exit code 1
+      # on the current lockfile). `npm install --no-package-lock` resolves from
+      # package.json and leaves the committed lockfile untouched.
+      #
+      # A PR review reported this lockfile as already repaired. It is not, and
+      # `upstream/main` has not moved since this branch was cut, so nothing has
+      # been fixed yet. Reverting this step to `npm ci` without repairing the
+      # lockfile would leave the pipeline permanently red.
+      #
+      # TO REVERT: repair the lockfile (regenerate it, or fill in the 23 missing
+      # `version` fields), then replace the step below with `npm ci`. The
+      # lockfile is not touched in this PR because it is owned by another stream.
+      - name: Install
+        run: npm install --no-package-lock
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Engine contract
+        run: npx vitest run
+
+      - name: Token gate — no colour literal outside tokens.css
+        run: npx tsx scripts/theme-lint.ts
+
+      - name: Copy gate — no emoji, banned filler, or colon reveals
+        run: npx tsx scripts/copy-lint.ts
+
+      - name: Contrast gate — every token pair, both themes, WCAG AA
+        run: npx tsx scripts/contrast-lint.ts
+
+      - name: Build
+        run: npx next build
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # See the `gate` job for why this is not `npm ci` yet.
+      - run: npm install --no-package-lock
+      # The ESLint CLI, not `next lint`. `next lint` is deprecated in Next 16
+      # and interactively prompts when it finds no config, so as a CI step it
+      # would hang the job rather than pass or fail it.
+      - name: Lint
+        run: npx eslint .

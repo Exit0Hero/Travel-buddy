@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Context-aware local experience discovery for time-constrained travellers",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,7 +17,11 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:harvest": "tsx scripts/harvest-osm.ts",
     "db:embed": "tsx scripts/embed.ts",
-    "theme:lint": "tsx scripts/theme-lint.ts"
+    "theme:lint": "tsx scripts/theme-lint.ts",
+    "theme:lint:watch": "tsx scripts/theme-lint.ts --watch",
+    "copy:lint": "tsx scripts/copy-lint.ts",
+    "contrast:lint": "tsx scripts/contrast-lint.ts",
+    "lint": "eslint ."
   },
   "dependencies": {
     "next": "15.5.26",

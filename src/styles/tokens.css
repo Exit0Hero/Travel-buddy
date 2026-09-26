@@ -1,0 +1,568 @@
+/* ==========================================================================
+   TOKENS — the single place a colour, size or curve may be written down.
+
+   `npm run theme:lint` fails the build on any hex literal in any other file.
+   This is not ceremony: a design system without a gate is a mood board. The
+   reference clone we took the token guarantee from had it decay into one inline
+   hex the moment nobody enforced it.
+
+   Layering, per docs/DESIGN_SYSTEM.md §2:
+
+     1. raw      — the only place a hex may appear
+     2. semantic — what a token MEANS, mapped onto raw
+     3. @theme   — Tailwind v4 emits utilities from these names
+
+   The semantic layer is the one components are allowed to reference. Adding a
+   fourth brand colour is a deliberate act: name the semantic, add it here.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ---------------------------------------------------------------------
+     1. RAW — light
+     Grounded in the subject, Mumbai's monsoon. Deliberately not the default
+     travel palette: no cream-and-terracotta, no near-black-with-acid-accent.
+     --------------------------------------------------------------------- */
+  --raw-canvas: #f6f4ef; /* bone, unbleached */
+  --raw-surface: #fffdf8; /* raised surfaces */
+  --raw-ink: #17150f; /* warm carbon. Never pure black */
+  --raw-ink-muted: #6f6a5e;
+  /* DESIGN_SYSTEM §2 lists #9A948A here. That is 2.74:1 on canvas, which
+     cannot carry text at any size, and §5 is explicit that contrast is
+     non-negotiable — so this is lightened until it clears the 3:1 bar for
+     incidental content. The practical consequence is a usage rule, now
+     enforced in the components: `ink-faint` is for DECORATION ONLY
+     (aria-hidden separators, disabled states). Anything a person needs to read
+     uses `ink-muted`, which clears 4.5:1. Darkening this far enough for
+     4.5:1 would put it at #726E66, 0.28 away from `ink-muted` — three
+     indistinguishable text tiers instead of two legible ones. */
+  --raw-ink-faint: #888279;
+  --raw-rule: #e4e0d6; /* every 1px divider in the app */
+  --raw-accent: #0e4f4a; /* monsoon teal. The ONLY brand accent */
+  --raw-accent-soft: #d7e4e2; /* accent at ~12%, for fills */
+  --raw-alarm: #b23a2e; /* chalk vermilion. Over budget, infeasible, closed */
+  --raw-alarm-soft: #f5e2df;
+  --raw-fit: #4a6b3a; /* muted leaf. Fits, confirmed, available */
+  --raw-fit-soft: #e2eadd;
+  /* DESIGN_SYSTEM §2 lists #9A6B1F here: 4.25:1 on canvas, just under the
+     4.5:1 that §5 requires of a semantic colour used AS TEXT. `warn` is used
+     as text (an unverified-hours notice, an inferred-data badge, a tight fit),
+     so it is darkened to clear the bar while staying the same ochre. */
+  --raw-warn: #8b601c;
+  --raw-warn-soft: #f2e7d4;
+  --raw-info: #3d5a80; /* neutral informational */
+  --raw-info-soft: #dfe5ee;
+
+  /* Elevation. Two levels, both under 0.05 opacity — DESIGN_SYSTEM §2. */
+  --raw-shadow-1: rgb(23 21 15 / 0.04);
+  --raw-shadow-2: rgb(23 21 15 / 0.05);
+  --raw-scrim: rgb(23 21 15 / 0.32);
+
+  /* Focus ring. Derived from accent so it can never drift from the brand. */
+  --raw-focus: #0e4f4a;
+
+  /* Mask solid. CSS alpha masking reads ONLY the alpha channel, so this colour
+     is arbitrary — it means "opaque, show this". It exists as a token so
+     mask gradients can punch real holes without a hex literal at the call
+     site, which theme:lint would (correctly) reject. */
+  --raw-mask-solid: #000;
+
+  /* ---------------------------------------------------------------------
+     1b. RAW — dark
+     Canvas darkens, ink inverts, and the three semantic hues LIGHTEN so they
+     keep their contrast against a dark surface.
+     --------------------------------------------------------------------- */
+  --raw-canvas-dark: #14130f;
+  --raw-surface-dark: #1c1b16;
+  --raw-ink-dark: #ede9df;
+  --raw-ink-muted-dark: #a29c90;
+  --raw-ink-faint-dark: #8a8479;
+  --raw-rule-dark: #2c2a23;
+  --raw-accent-dark: #3e8e86;
+  --raw-accent-soft-dark: #1e3a37;
+  --raw-alarm-dark: #d4665a;
+  --raw-alarm-soft-dark: #3d201c;
+  --raw-fit-dark: #7fa06b;
+  --raw-fit-soft-dark: #24301d;
+  --raw-warn-dark: #c79a4e;
+  --raw-warn-soft-dark: #362a15;
+  --raw-info-dark: #7d9cc4;
+  --raw-info-soft-dark: #1d2735;
+  --raw-shadow-1-dark: rgb(0 0 0 / 0.32);
+  --raw-shadow-2-dark: rgb(0 0 0 / 0.4);
+  --raw-scrim-dark: rgb(0 0 0 / 0.6);
+  --raw-focus-dark: #3e8e86;
+
+  /* ---------------------------------------------------------------------
+     2. SEMANTIC
+     A name plus a role. This is what components reference.
+
+     The rule that makes the palette work: accent / alarm / fit are SEMANTIC,
+     not decorative. `accent` never appears where `alarm` means something.
+     --------------------------------------------------------------------- */
+  --canvas: var(--raw-canvas);
+  --surface: var(--raw-surface);
+  --ink: var(--raw-ink);
+  --ink-muted: var(--raw-ink-muted);
+  --ink-faint: var(--raw-ink-faint);
+  --rule: var(--raw-rule);
+  --accent: var(--raw-accent);
+  --accent-soft: var(--raw-accent-soft);
+  --alarm: var(--raw-alarm);
+  --alarm-soft: var(--raw-alarm-soft);
+  --fit: var(--raw-fit);
+  --fit-soft: var(--raw-fit-soft);
+  --warn: var(--raw-warn);
+  --warn-soft: var(--raw-warn-soft);
+  --info: var(--raw-info);
+  --info-soft: var(--raw-info-soft);
+  --shadow-1: var(--raw-shadow-1);
+  --shadow-2: var(--raw-shadow-2);
+  --scrim: var(--raw-scrim);
+  --focus: var(--raw-focus);
+  --mask-solid: var(--raw-mask-solid);
+
+  /* Inverse pair, for the one place we put light type on a dark fill. */
+  --ink-inverse: var(--raw-surface);
+  --on-accent: var(--raw-surface);
+  --on-alarm: var(--raw-surface);
+  --on-fit: var(--raw-surface);
+
+  /* ---------------------------------------------------------------------
+     3. TYPE — three roles, paired deliberately.
+
+     Display  Instrument Serif. Editorial voice. Explicitly not Playfair.
+     UI       Geist Sans. Bans Inter / Roboto / Open Sans.
+     Data     Geist Mono. Every duration, distance and rupee figure.
+     --------------------------------------------------------------------- */
+  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-ui: "Geist Sans", system-ui, -apple-system, sans-serif;
+  --font-data: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Per-tier USER font scaling. Every tier reads its own scale times a root
+     multiplier, so one accessibility slider rescales the whole app.
+
+     The rule, from TREK client/src/index.css:762-765: the value and the unit
+     ALWAYS share a tier. Never multiply a meta value by the display scale. */
+  --fs-root: 1;
+  --fs-scale-body: 1;
+  --fs-scale-meta: 1;
+  --fs-scale-display: 1;
+  --fs-scale-num: 1;
+
+  /* Base steps. A 1.25 ratio, from 13px so the mono metadata stays crisp. */
+  --fs-body: calc(0.9375rem * var(--fs-scale-body) * var(--fs-root));
+  --fs-body-lg: calc(1.0625rem * var(--fs-scale-body) * var(--fs-root));
+  --fs-meta: calc(0.8125rem * var(--fs-scale-meta) * var(--fs-root));
+  --fs-meta-sm: calc(0.75rem * var(--fs-scale-meta) * var(--fs-root));
+  --fs-num: calc(0.875rem * var(--fs-scale-num) * var(--fs-root));
+  --fs-num-sm: calc(0.75rem * var(--fs-scale-num) * var(--fs-root));
+  --fs-display: calc(2rem * var(--fs-scale-display) * var(--fs-root));
+  --fs-display-lg: calc(2.75rem * var(--fs-scale-display) * var(--fs-root));
+  --fs-title: calc(1.25rem * var(--fs-scale-display) * var(--fs-root));
+
+  --lh-tight: 1.15;
+  --lh-snug: 1.35;
+  --lh-body: 1.55;
+  --lh-loose: 1.7;
+
+  --tracking-caps: 0.08em;
+  --tracking-tight: -0.01em;
+
+  /* ---------------------------------------------------------------------
+     4. SPACE — 4px base
+     --------------------------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Radius. `full` is for pills and icon buttons ONLY — never a container.
+     DESIGN_SYSTEM §2 bans it on containers. */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* Border. Always 1px solid var(--rule). A shadow is never a divider. */
+  --border-hairline: 1px solid var(--rule);
+  --border-strong: 1px solid var(--raw-ink-faint);
+
+  /* ---------------------------------------------------------------------
+     5. Z-INDEX — one named scale. Never a bare z-50.
+     map-marker sits ABOVE overlays on purpose: a hovered marker must never
+     be occluded. AdventureLog raises the hovered marker to z-index 100000
+     for exactly this.
+     --------------------------------------------------------------------- */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-overlay: 20;
+  --z-dropdown: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+  --z-map-marker: 60;
+  --z-map-popup: 70;
+
+  /* ---------------------------------------------------------------------
+     6. MOTION — named curves only. Motion serves feasibility feedback and
+     nothing else. Never spectacle.
+     --------------------------------------------------------------------- */
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1); /* entrances, hover. 180ms */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /* layout shifts. 240ms */
+  --ease-feedback: cubic-bezier(0.34, 1.3, 0.64, 1); /* the meter filling. 320ms */
+
+  --dur-fast: 180ms;
+  --dur-base: 240ms;
+  --dur-feedback: 320ms;
+
+  /* Skeletons are held for at least this long so a fast response never
+     flashes a loading state. DESIGN_SYSTEM §3. */
+  --skeleton-min: 150ms;
+
+  /* ---------------------------------------------------------------------
+     7. LAYOUT
+     --------------------------------------------------------------------- */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --tap-target-min: 44px; /* every interactive element clears this */
+  --measure-prose: 68ch;
+  --map-z: var(--z-base);
+}
+
+/* -----------------------------------------------------------------------
+   DARK MODE
+
+   The raw layer swaps; the semantic layer does not move. That is the whole
+   reason it is split in two — a component never needs a dark-mode branch for
+   colour, only for elevation.
+   ----------------------------------------------------------------------- */
+/* The semantic layer swapped for dark. Declared twice on purpose: CSS has no
+   mixin, and a build step that existed only to fake one would be a second
+   source of truth for colour. Keep the two blocks in step — theme:lint plus
+   the contrast assertions in the a11y check both read these names. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: var(--raw-canvas-dark);
+    --surface: var(--raw-surface-dark);
+    --ink: var(--raw-ink-dark);
+    --ink-muted: var(--raw-ink-muted-dark);
+    --ink-faint: var(--raw-ink-faint-dark);
+    --rule: var(--raw-rule-dark);
+    --accent: var(--raw-accent-dark);
+    --accent-soft: var(--raw-accent-soft-dark);
+    --alarm: var(--raw-alarm-dark);
+    --alarm-soft: var(--raw-alarm-soft-dark);
+    --fit: var(--raw-fit-dark);
+    --fit-soft: var(--raw-fit-soft-dark);
+    --warn: var(--raw-warn-dark);
+    --warn-soft: var(--raw-warn-soft-dark);
+    --info: var(--raw-info-dark);
+    --info-soft: var(--raw-info-soft-dark);
+    --shadow-1: var(--raw-shadow-1-dark);
+    --shadow-2: var(--raw-shadow-2-dark);
+    --scrim: var(--raw-scrim-dark);
+    --focus: var(--raw-focus-dark);
+
+    --ink-inverse: var(--raw-canvas-dark);
+    --on-accent: var(--raw-canvas-dark);
+    --on-alarm: var(--raw-canvas-dark);
+    --on-fit: var(--raw-canvas-dark);
+  }
+}
+
+/* Explicit override, so a user choice beats the OS. Applied by ThemeProvider
+   in src/app/providers.tsx. */
+:root[data-theme="dark"] {
+  --canvas: var(--raw-canvas-dark);
+  --surface: var(--raw-surface-dark);
+  --ink: var(--raw-ink-dark);
+  --ink-muted: var(--raw-ink-muted-dark);
+  --ink-faint: var(--raw-ink-faint-dark);
+  --rule: var(--raw-rule-dark);
+  --accent: var(--raw-accent-dark);
+  --accent-soft: var(--raw-accent-soft-dark);
+  --alarm: var(--raw-alarm-dark);
+  --alarm-soft: var(--raw-alarm-soft-dark);
+  --fit: var(--raw-fit-dark);
+  --fit-soft: var(--raw-fit-soft-dark);
+  --warn: var(--raw-warn-dark);
+  --warn-soft: var(--raw-warn-soft-dark);
+  --info: var(--raw-info-dark);
+  --info-soft: var(--raw-info-soft-dark);
+  --shadow-1: var(--raw-shadow-1-dark);
+  --shadow-2: var(--raw-shadow-2-dark);
+  --scrim: var(--raw-scrim-dark);
+  --focus: var(--raw-focus-dark);
+
+  --ink-inverse: var(--raw-canvas-dark);
+  --on-accent: var(--raw-canvas-dark);
+  --on-alarm: var(--raw-canvas-dark);
+  --on-fit: var(--raw-canvas-dark);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* -----------------------------------------------------------------------
+   REDUCED MOTION — honoured globally, not per component.
+
+   `transition: none` is wrong on its own: it kills the transition but leaves
+   a component that relied on an animation end-event stranded. We also drop
+   the durations, so anything that reads a timing value gets 0.
+   ----------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0.01ms;
+    --dur-base: 0.01ms;
+    --dur-feedback: 0.01ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Same override, for a user toggle in the app. */
+:root[data-motion="reduced"] {
+  --dur-fast: 0.01ms;
+  --dur-base: 0.01ms;
+  --dur-feedback: 0.01ms;
+}
+
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* -----------------------------------------------------------------------
+   TYPE SCALE UTILITIES
+
+   Exposed as classes rather than utilities because the calc() chain has to
+   stay in one place. The rule from the reference: value and unit share a
+   tier, so `.text-meta` multiplies the meta scale and nothing else.
+   ----------------------------------------------------------------------- */
+.text-body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+.text-body-lg {
+  font-size: var(--fs-body-lg);
+  line-height: var(--lh-body);
+}
+.text-meta {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-snug);
+}
+.text-meta-sm {
+  font-size: var(--fs-meta-sm);
+  line-height: var(--lh-snug);
+}
+.text-num {
+  font-family: var(--font-data);
+  font-size: var(--fs-num);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--lh-snug);
+}
+.text-num-sm {
+  font-family: var(--font-data);
+  font-size: var(--fs-num-sm);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--lh-snug);
+}
+.text-display {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+}
+.text-display-lg {
+  font-family: var(--font-display);
+  font-size: var(--fs-display-lg);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+}
+.text-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  line-height: var(--lh-snug);
+}
+.text-caps {
+  font-family: var(--font-ui);
+  font-size: var(--fs-meta-sm);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  line-height: var(--lh-snug);
+}
+
+/* -----------------------------------------------------------------------
+   FOCUS — one ring, everywhere, always visible on keyboard focus only.
+   ----------------------------------------------------------------------- */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* Only for pointer users, so a mouse click does not leave a ring behind. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* -----------------------------------------------------------------------
+   BASE
+   ----------------------------------------------------------------------- */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Every 1px divider in the app. One rule, one colour. */
+.hairline {
+  border: var(--border-hairline);
+}
+
+.raise-1 {
+  box-shadow: 0 1px 2px var(--shadow-1);
+}
+.raise-2 {
+  box-shadow: 0 2px 8px var(--shadow-2);
+}
+
+/* Visually hidden, still announced. For labels on icon-only controls. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link. Visible on focus, which is the only time it matters. */
+.skip-link {
+  position: absolute;
+  left: var(--space-2);
+  top: var(--space-2);
+  z-index: var(--z-toast);
+  padding: var(--space-2) var(--space-4);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--radius-md);
+  transform: translateY(-200%);
+  transition: transform var(--dur-fast) var(--ease-out-soft);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* -----------------------------------------------------------------------
+   TAILWIND v4 BRIDGE
+
+   @theme emits utilities from these names, so `bg-canvas`, `text-ink`,
+   `border-rule` and `text-num` all resolve. Values reference the semantic
+   layer, so dark mode needs no per-utility variant anywhere in the app.
+   ----------------------------------------------------------------------- */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-alarm: var(--alarm);
+  --color-alarm-soft: var(--alarm-soft);
+  --color-fit: var(--fit);
+  --color-fit-soft: var(--fit-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-ink-inverse: var(--ink-inverse);
+  --color-on-accent: var(--on-accent);
+  --color-on-alarm: var(--on-alarm);
+  --color-on-fit: var(--on-fit);
+
+  --font-display: var(--font-display);
+  --font-ui: var(--font-ui);
+  --font-data: var(--font-data);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-raise-1: 0 1px 2px var(--shadow-1);
+  --shadow-raise-2: 0 2px 8px var(--shadow-2);
+
+  --ease-out-soft: var(--ease-out-soft);
+  --ease-in-out: var(--ease-in-out);
+  --ease-feedback: var(--ease-feedback);
+
+  /* The named z-scale, so `z-modal` and `z-map-marker` exist as utilities and a
+     bare `z-50` is never the shortest path. */
+  --z-base: var(--z-base);
+  --z-sticky: var(--z-sticky);
+  --z-overlay: var(--z-overlay);
+  --z-dropdown: var(--z-dropdown);
+  --z-modal: var(--z-modal);
+  --z-toast: var(--z-toast);
+  --z-map-marker: var(--z-map-marker);
+  --z-map-popup: var(--z-map-popup);
+
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+}
+
+/* Semantic hues as soft fills, used by meters, pills and radar bars. */
+@utility bg-fit-soft {
+  background-color: var(--fit-soft);
+}
+@utility bg-alarm-soft {
+  background-color: var(--alarm-soft);
+}
+@utility bg-warn-soft {
+  background-color: var(--warn-soft);
+}
+@utility bg-info-soft {
+  background-color: var(--info-soft);
+}
+@utility bg-accent-soft {
+  background-color: var(--accent-soft);
+}
+@utility text-ink-inverse {
+  color: var(--ink-inverse);
+}

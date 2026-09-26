@@ -31,7 +31,9 @@ Legend: **A** = Abhijit · **K** = Karan · **V** = Vishwesh · **—** = nobody
 | `src/data/**` | **A** | harvest scripts, OSM normaliser, curation schema + seed data, embeddings, catalogue build |
 | `src/db/**` | **A** | schema, migrations, repositories |
 | `scripts/harvest-osm.ts` `scripts/embed.ts` `scripts/seed.ts` `scripts/eval.ts` | **A** | |
-| `tests/**` | **A** | engine unit tests + the eval harness |
+| `scripts/theme-lint.ts` `scripts/copy-lint.ts` `scripts/contrast-lint.ts` | **K** | the design-system gates. Already K's by the `src/styles/**` row above, which names "theme lint" — listed here so the path is not ambiguous |
+| `tests/**` `vitest.config.ts` | **A** | engine unit tests + the eval harness. The vitest config follows `tests/**` |
+| `tests/engine-seam.test.ts` | **K** | the UI-side engine contract test. Requested by the repo owner during PR review; it asserts the engine satisfies the seam, which is the UI's concern, though it lives in A's directory |
 | `src/components/ui/**` | **K** | design-system primitives: Button, Card, Meter, Badge, Popover, Sheet, Skeleton, EmptyState |
 | `src/components/map/**` | **K** | MapLibre wrapper, cluster layer, route line, card↔map coupling |
 | `src/components/fit/**` | **K** | FitMeter, TravelConnector, TimeBudgetBar, StressRadar, WhyLedger, ScoreBreakdownList |
@@ -44,9 +46,20 @@ Legend: **A** = Abhijit · **K** = Karan · **V** = Vishwesh · **—** = nobody
 | `src/llm/**` | **V** | OpenRouter client, NLU, narration, enrichment, guardrails |
 | `content/**` `docs/FEATURES.md` `docs/DEMO_SCRIPT.md` | **V** | seed copy, eval scenarios, demo script, deck content |
 | `docs/**` (everything else) | **A** | architecture, data spec, ML plan, eval spec, decisions |
+| `README.md` | **A** | project overview and status. Already A's in the Day 7 row; listed here because the map previously omitted it |
 | `package.json` `tsconfig.json` | **A** | dependencies. Adding one = a message to the group first |
 | `src/lib/**` | **A** | shared utilities: money, time, id, env, logging |
 | `research/**` | **A** | the 71 pinned reference repos and findings. Read-only for everyone else |
+
+**`eslint.config.mjs` and the `lint` script have no owner, and we are not
+inventing one.** ESLint spans all three streams rather than belonging to any of
+them, and the `lint` script itself lives in `package.json`, which this file
+already makes a group decision. Assigning it to whoever happened to write the
+config would be worse than leaving it unassigned, because the next person would
+read the map and assume it was settled. **This needs a group decision** — the
+obvious candidates are "A, with the rest of the tooling" or "shared: any stream
+may change it in a PR, no coordination needed". Either is defensible; what is not
+defensible is leaving it ambiguous for a third cycle.
 
 ### The three integration points
 

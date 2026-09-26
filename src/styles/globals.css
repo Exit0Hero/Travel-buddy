@@ -1,0 +1,61 @@
+/* Global stylesheet. Imports the token layer, then only cross-cutting
+   primitives that no single component should own. */
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Contributes content globs only — the theme is declared in tokens.css. */
+@config "../../tailwind.config.ts";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* MapLibre's own chrome is a third-party stylesheet we do not control, so its
+   few overrides live here rather than in tokens.css. Colours still come from
+   tokens — the hex literals below are the sole exception and they are what
+   theme:lint's allowlist names. */
+.maplibregl-map {
+  font-family: var(--font-ui);
+  background: var(--canvas);
+}
+
+.maplibregl-ctrl-attrib {
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: var(--fs-meta-sm);
+  border-radius: var(--radius-sm) 0 0 0;
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--ink-muted);
+}
+
+/* The cluster count is HTML, never a glyph: raster basemaps and blocked glyph
+   endpoints make glyph clusters unreliable. AdventureLog FullMap.svelte:313-352
+   says so in a comment worth reading. */
+.cluster-count {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--surface);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-data);
+  font-size: var(--fs-num-sm);
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 1px 2px var(--shadow-2);
+}
+
+.cluster-count[data-open="true"] {
+  background: var(--fit);
+  color: var(--on-fit);
+}
+
+.map-marker {
+  /* Above overlays on purpose: a hovered marker must never be occluded. */
+  z-index: var(--z-map-marker);
+}
+
+.map-popup {
+  z-index: var(--z-map-popup);
+}

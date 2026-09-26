@@ -17,9 +17,10 @@
     "jsx": "preserve",
     "incremental": true,
     "types": ["node"],
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@/*": ["./src/*"] },
+    "plugins": [{ "name": "next" }]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts", "tests/**/*.ts", "*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts", "tests/**/*.ts", "*.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules", ".next", "research", "graphify-out", "graphify-systems-out",
               "TREK", "AdventureLog", "trip-planner", "makemydrivefun",
               "ai-travel-planner", "ai-travelassistant",
