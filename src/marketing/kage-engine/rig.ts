@@ -16,6 +16,7 @@
  */
 import * as THREE from "three";
 
+import { activeIndex as activeIndexOf, chapterMix as chapterMixOf } from "./scene";
 import type { EngineConfig, Waypoint } from "./types";
 
 export interface Rig {
@@ -66,10 +67,7 @@ export function createRig(
       camera,
       chapterMix,
       update(scroll) {
-        const idx = Math.min(
-          waypoints.length - 1,
-          Math.max(0, Math.round(scroll * (waypoints.length - 1))),
-        );
+        const idx = activeIndexOf(scroll, waypoints.length, scroll);
         const wp = waypoints[idx];
         if (!wp) return;
         if (!settled) {
@@ -77,15 +75,18 @@ export function createRig(
           camera.lookAt(new THREE.Vector3(...wp.target));
           settled = true;
         }
+        /*
+          Reduced motion: a hard one-hot mix — only the nearest chapter lit,
+          no blend across the boundary. The engine ships no WebGL scene under
+          reduced motion, so this array is effectively unused, but it is kept
+          strictly one-hot to match the contract documented above
+          ("the page's own text carries the content").
+        */
         for (let i = 0; i < chapterMix.length; i++) {
           chapterMix[i] = i === idx ? 1 : 0;
         }
       },
-      activeIndex: () =>
-        Math.min(
-          waypoints.length - 1,
-          Math.max(0, Math.round(0 * (waypoints.length - 1))),
-        ),
+      activeIndex: () => activeIndexOf(0, waypoints.length, 0),
       dispose() {
         camera.clear();
       },
@@ -145,17 +146,22 @@ export function createRig(
       currentRoll += (wantRoll - currentRoll) * k;
       camera.rotation.z = currentRoll;
 
+      /*
+        One source of truth for the mix. `scroll` (not `smoothed`) drives the
+        visual weights: the camera trails the reader on purpose, but the
+        per-chapter lighting/fog/bloom must track the actual scroll so a
+        chapter reads as "arrived" the moment the reader reaches it, not a
+        frame later. The DOM consumers in `scene.ts` get the identical numbers.
+      */
+      const mix = chapterMixOf(scroll, waypoints.length);
       for (let i = 0; i < chapterMix.length; i++) {
-        const d = Math.abs(i - pos);
-        chapterMix[i] = Math.max(0, 1 - d);
+        chapterMix[i] = mix[i] ?? 0;
       }
     },
     activeIndex() {
-      const span = Math.max(1, waypoints.length - 1);
-      return Math.min(
-        waypoints.length - 1,
-        Math.max(0, Math.round(smoothed * span)),
-      );
+      /* `smoothed` is the rig's own captured frame loop variable; `scroll` is
+         only a parameter of `update`, so it is not in scope here. */
+      return activeIndexOf(smoothed, waypoints.length, smoothed);
     },
     dispose() {
       camera.clear();
