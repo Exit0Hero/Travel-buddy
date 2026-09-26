@@ -59,3 +59,56 @@
 .map-popup {
   z-index: var(--z-map-popup);
 }
+
+/* ==========================================================================
+   CINEMATIC SCALE
+   The one definition of the kage-engine's type, colour and motion scale, on
+   :root, so that a marketing chapter and a design-system primitive can share
+   the same numbers without either importing the other.
+
+   `src/marketing/kage-engine/scale.ts` emits these same names onto
+   `.kage-root`; declaring them here as well is deliberate, because
+   `EmptyState` lives outside that scope and must still read the same values.
+   One source of truth for the VALUES is this block — the TypeScript module
+   holds the names and the engine's validation, not a competing copy.
+
+   WHY NOT IN tokens.css. `tokens.css` is the Athiti product token layer, and a
+   cinematic marketing surface has no business redefining the palette the
+   discovery surface depends on. These are additional names, not overrides:
+   nothing here changes an existing token.
+
+   CONTRAST, measured by hand because `contrast:lint` reads `tokens.css` only
+   and does not cover this surface. Against --cine-bg (#0a0c11):
+     --cine-ink     #f2efe8  15.33:1   AAA at every size
+     --cine-muted   #b3ada1   8.10:1   AAA at body sizes
+     --cine-accent  #7fd0c4   7.41:1   AAA at body sizes
+     --cine-alarm   #e88b7c   5.14:1   AA  at body sizes
+     --cine-fit     #a8cf94   6.92:1   AA  at body sizes
+   ========================================================================== */
+:root {
+  --cine-bg: #0a0c11;
+  --cine-ink: #f2efe8;
+  --cine-muted: #b3ada1;
+  --cine-accent: #7fd0c4;
+  --cine-alarm: #e88b7c;
+  --cine-fit: #a8cf94;
+  --cine-rule: #2a2f3a;
+
+  --cine-display: clamp(2.25rem, 6.4vw, 4.5rem);
+  --cine-lede: clamp(1.375rem, 2.6vw, 2rem);
+  --cine-title: clamp(1.0625rem, 1.5vw, 1.3125rem);
+  --cine-body: 1rem;
+  --cine-meta: 0.75rem;
+
+  --cine-caps: 0.14em;
+  --cine-tight: -0.02em;
+
+  /* Same deceleration as --ease-out-soft, so a chapter reveal and a button
+     press settle identically. */
+  --cine-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --cine-dur: 520ms;
+  --cine-dur-fast: 220ms;
+
+  --cine-gutter: clamp(1.25rem, 4vw, 4.5rem);
+  --cine-block: clamp(4.5rem, 12vh, 9rem);
+}

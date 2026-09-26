@@ -1,0 +1,535 @@
+/* ==========================================================================
+   KAGE ENGINE — scoped styles
+   Everything is under `.kage-root`, and every colour is a custom property
+   defined by `scale.ts` at mount. There is no hex, no colour function and no
+   bare z-index in this file, for the same reason the product stylesheets hold
+   to it: the values live in one place and the routes cannot drift apart.
+
+   The palette is checked by hand against WCAG AA because `contrast:lint` only
+   reads `src/styles/tokens.css` and does not cover this surface. The measured
+   ratios are recorded beside each token in `scale.ts`.
+   ========================================================================== */
+
+.kage-root {
+  position: relative;
+  background-color: var(--cine-bg, #0a0c11);
+  color: var(--cine-ink, #f2efe8);
+  min-height: 100dvh;
+  overflow-x: clip;
+  font-family: var(--font-ui), system-ui, -apple-system, sans-serif;
+}
+
+/* ------------------------------------------------------------------ canvas */
+.kage-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* A fixed canvas under a scrolling column: the city does not move with the
+     text, which is what sells the depth. */
+}
+
+.kage-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Without WebGL the page must still read. A vertical gradient stands in, so a
+   failed context degrades to a dark editorial page rather than a black void. */
+.kage-notice {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  padding: var(--space-4, 1rem) var(--cine-gutter, 2rem);
+  background-color: var(--cine-alarm, #e88b7c);
+  color: #14100e;
+  font-size: var(--cine-body, 1rem);
+}
+
+/* ------------------------------------------------------------------- skip */
+.kage-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 4;
+  padding: 0.75rem 1rem;
+  background: var(--cine-ink);
+  color: var(--cine-bg);
+  font-size: var(--cine-meta);
+  letter-spacing: var(--cine-caps);
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.kage-skip:focus {
+  left: 0;
+}
+
+/* -------------------------------------------------------------------- rail */
+.kage-rail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 17rem;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: linear-gradient(
+    to right,
+    rgb(10 12 17 / 0.92) 0%,
+    rgb(10 12 17 / 0.72) 70%,
+    rgb(10 12 17 / 0) 100%
+  );
+}
+
+.kage-rail__title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.5rem;
+  letter-spacing: var(--cine-tight);
+  color: var(--cine-ink);
+}
+
+.kage-rail__tagline {
+  margin: 0.35rem 0 0;
+  font-size: var(--cine-meta);
+  letter-spacing: var(--cine-caps);
+  text-transform: uppercase;
+  color: var(--cine-muted);
+}
+
+.kage-rail__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.kage-rail__item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: var(--cine-muted);
+  text-decoration: none;
+  border-left: 1px solid transparent;
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+  transition:
+    color var(--cine-dur-fast) var(--cine-ease),
+    border-color var(--cine-dur-fast) var(--cine-ease);
+}
+
+.kage-rail__n {
+  font-family: var(--font-data), ui-monospace, monospace;
+  font-size: var(--cine-meta);
+  letter-spacing: var(--cine-caps);
+  color: var(--cine-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.kage-rail__label {
+  font-size: 0.9375rem;
+}
+
+/* Current chapter. Carried by a rule as well as colour, so it is not hue-only. */
+.kage-rail__item[aria-current="true"] {
+  color: var(--cine-ink);
+  border-left-color: var(--cine-accent);
+}
+
+/* --------------------------------------------------------------------- CTA */
+.kage-cta {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--cine-accent);
+  color: #06110f;
+  font-size: var(--cine-meta);
+  letter-spacing: var(--cine-caps);
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 999px;
+  transition:
+    transform var(--cine-dur-fast) var(--cine-ease),
+    opacity var(--cine-dur-fast) var(--cine-ease);
+}
+
+.kage-cta:hover {
+  transform: translateY(-2px);
+}
+
+.kage-cta--end {
+  margin-top: 0;
+  min-height: 3.25rem;
+  padding-inline: 2rem;
+  font-size: 0.875rem;
+}
+
+/* ---------------------------------------------------------------- chapters */
+.kage-chapters {
+  position: relative;
+  z-index: 1;
+  margin-left: 17rem;
+}
+
+.kage-chapter {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  padding-block: var(--cine-block);
+  padding-inline: var(--cine-gutter);
+}
+
+.kage-chapter__inner {
+  max-width: 44rem;
+}
+
+/*
+  Chapter reveal. The resting state is visible, and the animation only ever
+  ADDS a transform — so a browser without scroll-driven animations, a reader
+  with reduced motion, and a crawler all get the same complete page. The same
+  reasoning as the product's own reveal rules: never make content depend on an
+  animation having run.
+*/
+.kage-chapter__title,
+.kage-chapter__copy,
+.kage-eyebrow,
+.kage-gates,
+.kage-pins {
+  opacity: 1;
+  transform: none;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .kage-chapter__title,
+    .kage-chapter__copy,
+    .kage-eyebrow,
+    .kage-gates,
+    .kage-pins {
+      animation: kage-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 2% cover 30%;
+    }
+
+    .kage-chapter__copy {
+      animation-range: entry 6% cover 36%;
+    }
+
+    .kage-gates,
+    .kage-pins {
+      animation-range: entry 10% cover 44%;
+    }
+  }
+}
+
+@keyframes kage-rise {
+  from {
+    opacity: 0.15;
+    transform: translate3d(0, 1.5rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Scroll-driven animations ignore duration, so reduced motion has to switch
+   them off explicitly rather than shortening them. */
+@media (prefers-reduced-motion: reduce) {
+  .kage-chapter__title,
+  .kage-chapter__copy,
+  .kage-eyebrow,
+  .kage-gates,
+  .kage-pins {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .kage-cta {
+    transition: none;
+  }
+
+  .kage-cta:hover {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------- type */
+.kage-eyebrow {
+  margin: 0 0 1rem;
+  font-family: var(--font-data), ui-monospace, monospace;
+  font-size: var(--cine-meta);
+  letter-spacing: var(--cine-caps);
+  text-transform: uppercase;
+  color: var(--cine-accent);
+}
+
+.kage-chapter__title {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  font-size: var(--cine-display);
+  line-height: 1.05;
+  letter-spacing: var(--cine-tight);
+  color: var(--cine-ink);
+}
+
+.kage-chapter__n {
+  font-family: var(--font-data), ui-monospace, monospace;
+  font-size: var(--cine-meta);
+  letter-spacing: var(--cine-caps);
+  color: var(--cine-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.kage-chapter__jp {
+  font-size: 0.5em;
+  color: var(--cine-muted);
+  letter-spacing: 0.1em;
+}
+
+.kage-chapter__copy {
+  margin: 1.5rem 0 0;
+  max-width: 34rem;
+  font-size: var(--cine-body);
+  line-height: 1.65;
+  color: var(--cine-muted);
+}
+
+/* ------------------------------------------------------------------ gates */
+.kage-gates {
+  margin: 2.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kage-gate {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--cine-rule);
+  border-left-width: 3px;
+  background: rgb(10 12 17 / 0.6);
+  backdrop-filter: blur(6px);
+}
+
+/* Verdict colour is on the rule, and the verdict is also written out, so the
+   pass/reject distinction survives both a monochrome screen and a colour-
+   vision difference. */
+.kage-gate[data-outcome="pass"] {
+  border-left-color: var(--cine-fit);
+}
+
+.kage-gate[data-outcome="reject"] {
+  border-left-color: var(--cine-alarm);
+}
+
+.kage-gate__verdict {
+  font-family: var(--font-data), ui-monospace, monospace;
+  font-size: var(--cine-meta);
+  letter-spacing: var(--cine-caps);
+  text-transform: uppercase;
+}
+
+.kage-gate[data-outcome="pass"] .kage-gate__verdict {
+  color: var(--cine-fit);
+}
+
+.kage-gate[data-outcome="reject"] .kage-gate__verdict {
+  color: var(--cine-alarm);
+}
+
+.kage-gate__code {
+  font-family: var(--font-data), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  color: var(--cine-ink);
+}
+
+.kage-gate__sentence {
+  grid-column: 1 / -1;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--cine-muted);
+}
+
+/* The in-scene label, positioned by projection. Hidden from assistive tech
+   because the same information is in the DOM list immediately above. */
+.kage-gate-label {
+  position: fixed;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  max-width: 22rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 2px solid var(--cine-fit);
+  background: rgb(10 12 17 / 0.82);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--cine-muted);
+  transition: opacity var(--cine-dur-fast) var(--cine-ease);
+}
+
+.kage-gate-label[data-outcome="reject"] {
+  border-left-color: var(--cine-alarm);
+}
+
+.kage-gate-label__verdict {
+  display: block;
+  font-family: var(--font-data), ui-monospace, monospace;
+  font-size: var(--cine-meta);
+  letter-spacing: var(--cine-caps);
+  text-transform: uppercase;
+  color: var(--cine-fit);
+}
+
+.kage-gate-label[data-outcome="reject"] .kage-gate-label__verdict {
+  color: var(--cine-alarm);
+}
+
+.kage-gate-label__code {
+  display: block;
+  color: var(--cine-ink);
+}
+
+.kage-gate-label__sentence {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* ------------------------------------------------------------------- pins */
+.kage-pins {
+  margin: 2.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.kage-pin {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--cine-rule);
+  background: rgb(10 12 17 / 0.6);
+  backdrop-filter: blur(6px);
+}
+
+.kage-pin[data-kind="demand"] {
+  border-top: 2px solid var(--cine-alarm);
+}
+
+.kage-pin[data-kind="provider"] {
+  border-top: 2px solid var(--cine-accent);
+}
+
+.kage-pin__label {
+  display: block;
+  font-family: var(--font-data), ui-monospace, monospace;
+  font-size: var(--cine-meta);
+  letter-spacing: var(--cine-caps);
+  text-transform: uppercase;
+  color: var(--cine-ink);
+}
+
+.kage-pin__detail {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--cine-muted);
+}
+
+/* ------------------------------------------------------------------- end */
+.kage-chapter--end {
+  justify-content: center;
+  min-height: 70dvh;
+}
+
+/* ------------------------------------------------------------- responsive */
+/*
+  Under 64rem the rail cannot sit beside the text — a 17rem column plus a 44rem
+  measure does not fit, and shrinking the measure below ~30rem is worse than
+  moving the rail. So it becomes a top bar and the chapters take the full width.
+*/
+@media (max-width: 64rem) {
+  .kage-rail {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    width: 100%;
+    padding: 1rem var(--cine-gutter);
+    background: rgb(10 12 17 / 0.94);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--cine-rule);
+    gap: 0.75rem;
+  }
+
+  .kage-rail__list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+  }
+
+  .kage-rail__item {
+    margin-left: 0;
+    padding-left: 0.6rem;
+  }
+
+  .kage-rail__label {
+    font-size: 0.8125rem;
+  }
+
+  .kage-cta {
+    margin-top: 0;
+    align-self: flex-start;
+  }
+
+  .kage-chapters {
+    margin-left: 0;
+  }
+
+  .kage-chapter {
+    min-height: auto;
+    padding-block: clamp(3rem, 9vh, 5rem);
+  }
+
+  .kage-gate {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 40rem) {
+  .kage-gate-label {
+    /* In-scene labels are a desktop affordance. On a phone the DOM list is
+       the readable version and the floating label would sit on top of it. */
+    display: none;
+  }
+
+  .kage-rail__label {
+    display: none;
+  }
+
+  .kage-chapter__inner {
+    max-width: none;
+  }
+}

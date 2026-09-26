@@ -53,6 +53,19 @@ const IGNORED_DIRS = new Set([
   "(marketing)",
 ]);
 
+/**
+ * Exact relative paths for the same reason as theme-lint's: the three
+ * cinematic routes carry their own prose, and a name ignore on `about` or
+ * `page` would silence unrelated files. `src/app/discover` is NOT in here and
+ * is still linted.
+ */
+const IGNORED_PATHS = new Set([
+  "src/app/page.tsx",
+  "src/app/about/page.tsx",
+  "src/app/how-it-works/page.tsx",
+  "src/marketing",
+]);
+
 const SCANNED = new Set([".ts", ".tsx"]);
 
 const SELF = relative(ROOT, resolve(import.meta.filename));
@@ -182,8 +195,10 @@ function* walk(dir: string): Generator<string> {
   } catch {
     return;
   }
+  if (IGNORED_PATHS.has(relative(ROOT, dir))) return;
   for (const entry of entries) {
     if (IGNORED_DIRS.has(entry)) continue;
+    if (IGNORED_PATHS.has(relative(ROOT, join(dir, entry)))) continue;
     const full = join(dir, entry);
     let stats;
     try {

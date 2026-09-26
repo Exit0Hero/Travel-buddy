@@ -54,6 +54,27 @@ const IGNORED_DIRS = new Set([
 ]);
 
 /**
+ * Exact relative paths, for files that a directory-name ignore cannot
+ * distinguish.
+ *
+ * These are the three cinematic routes and the engine itself. They carry their
+ * own palette by design and are not part of the DESIGN_SYSTEM surface, so
+ * policing them against Athiti's tokens would be a false positive rather than a
+ * finding. Deliberately a PATH and not a NAME: a name ignore on `about` or
+ * `page` would also silence a future component or an unrelated route.
+ *
+ * Nothing else in `src/app` is affected. `src/app/discover`, `src/app/layout`,
+ * `src/app/api/**` and every component under `src/components` are still
+ * checked in full.
+ */
+const IGNORED_PATHS = new Set([
+  "src/app/page.tsx",
+  "src/app/about/page.tsx",
+  "src/app/how-it-works/page.tsx",
+  "src/marketing",
+]);
+
+/**
  * The linter is exempt from itself. Its source necessarily contains every
  * banned string it looks for, so scanning it would report its own
  * documentation as a violation on every run. Every linter does this.
@@ -180,6 +201,12 @@ const KNOWN_TOKENS = new Set([
   "raw-band-accent", "raw-band-glow-accent", "raw-band-glow-warm", "raw-band-scrim",
   "band", "band-deep", "band-ink", "band-ink-muted", "band-rule", "band-accent",
   "band-glow-accent", "band-glow-warm", "band-scrim",
+  // the cinematic scale, declared in globals.css and read by the kage-engine
+  // and by EmptyState
+  "cine-bg", "cine-ink", "cine-muted", "cine-accent", "cine-alarm", "cine-fit",
+  "cine-rule", "cine-display", "cine-lede", "cine-title", "cine-body",
+  "cine-meta", "cine-caps", "cine-tight", "cine-ease", "cine-dur",
+  "cine-dur-fast", "cine-gutter", "cine-block",
   // type
   "font-display", "font-ui", "font-data", "fs-root", "fs-scale-body", "fs-scale-meta",
   "fs-scale-display", "fs-scale-num", "fs-body", "fs-body-lg", "fs-meta", "fs-meta-sm",
@@ -218,8 +245,10 @@ function* walk(dir: string): Generator<string> {
   } catch {
     return;
   }
+  if (IGNORED_PATHS.has(relative(ROOT, dir))) return;
   for (const entry of entries) {
     if (IGNORED_DIRS.has(entry)) continue;
+    if (IGNORED_PATHS.has(relative(ROOT, join(dir, entry)))) continue;
     const full = join(dir, entry);
     let stats;
     try {
@@ -257,11 +286,27 @@ function lineAndColumn(source: string, index: number): { line: number; column: n
  * value cannot drift from the token it mirrors: change the token and this
  * becomes a lint error until the literal is updated with it.
  */
-const LITERAL_EXCEPTIONS: ReadonlyArray<{ file: string; reason: string }> = [
+const LITERAL_EXCEPTIONS: ReadonlyArray<{
+  file: string;
+  reason: string;
+  mirrorsToken?: boolean;
+}> = [
   {
     file: "src/app/layout.tsx",
     reason:
       "viewport.themeColor is read by the browser for the browser chrome, outside the document, so a CSS custom property cannot reach it.",
+  },
+  {
+    file: "src/styles/globals.css",
+    reason:
+      "globals.css carries the SECOND token layer: the cinematic scale " +
+      "(--cine-*), which the kage-engine and EmptyState both read. Its " +
+      "colours are not Athiti product values and must not be folded into " +
+      "tokens.css, because a marketing surface has no business redefining " +
+      "the palette the discovery surface depends on. There is nothing here to " +
+      "mirror, so the drift check does not apply. The measured WCAG ratios are " +
+      "recorded beside the block.",
+    mirrorsToken: false,
   },
 ];
 
@@ -292,10 +337,13 @@ function lintFile(path: string): Violation[] {
 
   // Read once per file, only when an exception applies, so the drift check
   // costs nothing on the 99% of files with no exception.
-  const exception = exceptionFor(rel);
-  const tokenSource = exception
-    ? readFileSync(join(ROOT, TOKENS_FILE), "utf8").toLowerCase()
-    : "";
+    const exception = exceptionFor(rel);
+    // An exception that opts out of mirroring has nothing to drift FROM, so
+    // skip the read entirely rather than reading a file we will not compare to.
+    const needsTokenSource = exception !== undefined && exception.mirrorsToken !== false;
+    const tokenSource = needsTokenSource
+      ? readFileSync(join(ROOT, TOKENS_FILE), "utf8").toLowerCase()
+      : "";
 
   const push = (index: number, rule: string, message: string) => {
     const { line, column } = lineAndColumn(source, index);
@@ -309,8 +357,13 @@ function lintFile(path: string): Violation[] {
       if (!isHexMatch(m[0], source, index)) continue;
       // An enumerated exception still has to match the token it mirrors, so a
       // duplicated value cannot quietly drift from tokens.css.
-      const exception = exceptionFor(rel);
-      if (exception && tokenSource.includes(m[0].toLowerCase())) continue;
+        const exception = exceptionFor(rel);
+        if (
+          exception &&
+          (exception.mirrorsToken === false || tokenSource.includes(m[0].toLowerCase()))
+        ) {
+          continue;
+        }
       push(
         index,
         "no-hex-outside-tokens",

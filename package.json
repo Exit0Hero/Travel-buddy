@@ -52,6 +52,7 @@
     "tailwindcss": "^4.0.0",
     "@tailwindcss/postcss": "^4.0.0",
     "eslint": "^9.17.0",
-    "eslint-config-next": "15.5.26"
+    "eslint-config-next": "15.5.26",
+    "@types/three": "^0.186.0"
   }
 }
