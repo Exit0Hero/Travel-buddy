@@ -11,6 +11,8 @@
    ========================================================================== */
 
 .kage-root {
+  /* The containing block for the absolutely-positioned canvas above. Without
+     this the canvas would resolve against the viewport again. */
   position: relative;
   background-color: var(--cine-bg, #0a0c11);
   color: var(--cine-ink, #f2efe8);
@@ -21,12 +23,30 @@
 
 /* ------------------------------------------------------------------ canvas */
 .kage-canvas {
-  position: fixed;
+  /*
+    `absolute; inset: 0`, and the drawing buffer is clamped in KageEngine.
+
+    Three candidates were tried and two of them are wrong in ways that do not
+    announce themselves:
+
+      `fixed`        paints over the tool embedded below the story.
+      `sticky`       still occupies flow, so it pushed the chapter text a
+                     full viewport down. The canvas rendered perfectly and the
+                     copy vanished underneath it.
+      `absolute`     overlays the band correctly, but sizes the canvas to the
+                     whole narrative — 4503px here — which at dpr 1.75 asks
+                     WebGL for a ~7900px-tall buffer, past the maximum
+                     renderbuffer height. Context creation throws and the page
+                     silently falls back to text with no error anywhere.
+
+    `absolute` is correct and the clamp is what makes it safe: MAX_BUFFER in
+    KageEngine caps the device-pixel buffer at 4096 per side, so a future
+    layout mistake costs resolution instead of the entire scene.
+  */
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* A fixed canvas under a scrolling column: the city does not move with the
-     text, which is what sells the depth. */
 }
 
 .kage-canvas canvas {
@@ -68,10 +88,17 @@
 
 /* -------------------------------------------------------------------- rail */
 .kage-rail {
-  position: fixed;
+  /*
+    Was `fixed`. Same reason as the canvas: on a single page that also carries
+    the tool, a viewport-fixed rail sits on top of the map for the whole scroll.
+    `sticky` inside the band keeps the same behaviour — it stays put while the
+    narrative scrolls and it leaves when the band ends.
+  */
+  position: sticky;
   top: 0;
   left: 0;
-  bottom: 0;
+  align-self: start;
+  max-height: 100dvh;
   z-index: 2;
   width: 17rem;
   padding: 2rem 1.5rem;
@@ -533,3 +560,14 @@
     max-width: none;
   }
 }
+
+/* ==========================================================================
+   THE TOOL
+   The band ends and the instrument begins. The rule is one hairline and a
+   change of ground, never a cross-fade: a blend between a night city and a
+   daylight work surface is what makes a page feel like a template.
+
+   `.athiti-tool` itself is unstyled on purpose. The discovery surface already
+   carries `bg-canvas` and `min-h-dvh`, and restating its surface here would be
+   a second place for the tool's background to be decided.
+   ========================================================================== */

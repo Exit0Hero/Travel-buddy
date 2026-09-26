@@ -61,8 +61,6 @@ const IGNORED_DIRS = new Set([
  */
 const IGNORED_PATHS = new Set([
   "src/app/page.tsx",
-  "src/app/about/page.tsx",
-  "src/app/how-it-works/page.tsx",
   "src/marketing",
 ]);
 

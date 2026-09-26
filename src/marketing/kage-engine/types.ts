@@ -184,10 +184,33 @@ export function validateConfig(config: EngineConfig): void {
       }
     }
   }
-  if (config.cta && !config.cta.href.startsWith("/")) {
-    throw new EngineConfigError(
-      `CTA href "${config.cta.href}" is not a path. The engine only links to real routes.`,
-    );
+  /*
+    A CTA may point at a route OR at a fragment on the current page.
+
+    The original rule demanded a leading slash, on the reasoning that a CTA must
+    resolve to a real route. That was right for a multi-route app and wrong for
+    this one: the app is a single page, the tool lives below the story, and
+    `#tool` is both a valid target and the one that keeps working when the
+    WebGL context is absent — which is exactly when somebody is most likely to
+    press it. A same-page fragment is therefore not a loophole around the rule,
+    it is the correct answer to it.
+
+    What is still rejected is a relative path (`discover`) or an external URL:
+    the first is ambiguous about the origin it resolves against and the second
+    is a navigation out of the app, and neither is what a CTA on a single page
+    should ever be.
+  */
+  if (config.cta) {
+    const href = config.cta.href;
+    const isFragment = href.startsWith("#") && href.length > 1;
+    const isPath = href.startsWith("/") && !href.startsWith("//");
+    if (!isFragment && !isPath) {
+      throw new EngineConfigError(
+        `CTA href "${href}" is neither a same-page fragment (#id) nor a ` +
+          `same-origin path (/route). The engine does not link to relative ` +
+          `paths or to external origins.`,
+      );
+    }
   }
 }
 

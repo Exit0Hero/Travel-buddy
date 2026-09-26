@@ -23,7 +23,7 @@ import { Sheet } from "@/components/ui/Overlays";
 import { LearnedWeights, ResultCard, WhyLedger } from "@/components/fit";
 
 import { CONTEXT_TRIGGERS } from "../_fixtures";
-import { ASK_ATHITI_EVENT } from "./narrative/AthitiNav";
+import { ASK_ATHITI_EVENT } from "./askEvent";
 import { AccessibilityControls } from "./AccessibilityControls";
 import { ChatSidecar } from "./ChatSidecar";
 import { MapPanel } from "./MapPanel";

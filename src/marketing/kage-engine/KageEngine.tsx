@@ -97,9 +97,25 @@ export function KageEngine({ config, className }: KageEngineProps) {
       return;
     }
 
+    /*
+      A hard ceiling on the drawing buffer, in DEVICE pixels.
+
+      This is not a performance nicety. The canvas is styled to 100dvh, but the
+      size actually passed to `setPixelRatio`/`setSize` is whatever the element
+      measures, and an element that measures taller than the viewport — which is
+      exactly what `absolute; inset: 0` over a long scrolling band produced —
+      asks WebGL for a buffer past the maximum renderbuffer height. The context
+      creation then throws, and the page degrades to a plain-text fallback with
+      no error surfaced anywhere. Clamping here means a future layout mistake
+      costs resolution instead of the entire scene.
+    */
+    const MAX_BUFFER = 4096;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
-    renderer.setPixelRatio(dpr);
-    renderer.setSize(host.clientWidth, host.clientHeight);
+    const cssW = Math.max(1, host.clientWidth);
+    const cssH = Math.max(1, host.clientHeight);
+    const scale = Math.min(dpr, MAX_BUFFER / cssW, MAX_BUFFER / cssH);
+    renderer.setPixelRatio(scale);
+    renderer.setSize(cssW, cssH);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.06;
     host.appendChild(renderer.domElement);
@@ -221,10 +237,12 @@ export function KageEngine({ config, className }: KageEngineProps) {
       const w = host.clientWidth;
       const h = host.clientHeight;
       if (w === 0 || h === 0) return;
+      const scale = Math.min(dpr, MAX_BUFFER / w, MAX_BUFFER / h);
+      renderer.setPixelRatio(scale);
       renderer.setSize(w, h);
       rig.camera.aspect = w / h;
       rig.camera.updateProjectionMatrix();
-      post.setSize(w, h, dpr);
+      post.setSize(w, h, scale);
     };
     window.addEventListener("resize", onResize);
     onResize();
