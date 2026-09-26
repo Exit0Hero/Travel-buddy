@@ -27,3 +27,17 @@ export {
   type RouteTransitionProps,
 } from "./RouteTransition";
 export { useReducedMotion } from "./useReducedMotion";
+
+/**
+ * Phase 0.5: the single place every motion library is told what the user's
+ * preference is. Five libraries, five native switches, one source of truth.
+ * Nothing here starts or mounts anything yet.
+ */
+export {
+  useMotionPreference,
+  resolveMotionPreference,
+  viewTransitionProps,
+  MOTION_PREFERENCE,
+  REDUCED_MOTION_PREFERENCE,
+  type MotionPreference,
+} from "./motionPreference";

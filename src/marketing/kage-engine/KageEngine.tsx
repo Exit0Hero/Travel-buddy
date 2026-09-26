@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useMotionPreference } from "@/components/ui/motion";
+
 import * as THREE from "three";
 
 import { buildParallax, type ParallaxHandles } from "./parallax";
@@ -40,8 +42,20 @@ export function KageEngine({ config, className }: KageEngineProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(0);
-  const [reduced, setReduced] = useState(false);
   const [failed, setFailed] = useState(false);
+
+  /*
+    One source of truth for motion, Phase 0.5.
+
+    This engine used to run its own `matchMedia("(prefers-reduced-motion:
+    reduce)")`. That was a SECOND independent decision about the same
+    preference, and it was already wrong: it honoured the OS setting and
+    ignored the in-app `data-motion` toggle, so a user who had explicitly turned
+    motion off in the app still got a scroll-driven camera on this route. The
+    hook merges both sources and fails in the safe direction, so the engine now
+    asks it and nothing else.
+  */
+  const { reduced } = useMotionPreference();
 
   // The config is rebuilt on every render by the route; hold the last valid one
   // so the effect does not tear down the whole scene on a parent re-render.
@@ -56,15 +70,6 @@ export function KageEngine({ config, className }: KageEngineProps) {
       setFailed(true);
     }
   }, [config]);
-
-  /* ------------------------------------------------- reduced-motion watching */
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => setReduced(mq.matches);
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
 
   /* ------------------------------------------------------------- the scene */
   useEffect(() => {
