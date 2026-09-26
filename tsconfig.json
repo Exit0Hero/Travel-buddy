@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2023",
-    "lib": ["dom", "dom.iterable", "ES2023"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "ES2023"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
@@ -16,12 +20,41 @@
     "verbatimModuleSyntax": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": ["node"],
-    "paths": { "@/*": ["./src/*"] }
+    "types": [
+      "node"
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts", "tests/**/*.ts", "*.ts"],
-  "exclude": ["node_modules", ".next", "research", "graphify-out", "graphify-systems-out",
-              "TREK", "AdventureLog", "trip-planner", "makemydrivefun",
-              "ai-travel-planner", "ai-travelassistant",
-              "Tourism-Recommendation", "Tourism-Recommendation-System"]
+  "include": [
+    "*.ts",
+    "scripts/**/*.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tests/**/*.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "research",
+    "graphify-out",
+    "graphify-systems-out",
+    "TREK",
+    "AdventureLog",
+    "trip-planner",
+    "makemydrivefun",
+    "ai-travel-planner",
+    "ai-travelassistant",
+    "Tourism-Recommendation",
+    "Tourism-Recommendation-System"
+  ]
 }
