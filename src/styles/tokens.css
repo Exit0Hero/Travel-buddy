@@ -95,6 +95,38 @@
   --raw-focus-dark: #3e8e86;
 
   /* ---------------------------------------------------------------------
+     1c. RAW — the night band
+     One extra surface, used by the narrative half of the home page.
+
+     WHY A BAND AT ALL. The design system has two themes and both of them are
+     daylight surfaces: a warm cream, and a dark mode that is really just the
+     same warm dark used for OLED comfort. Neither can carry an atmospheric
+     opening without turning into a flat wash. So the story runs on its own
+     surface — a deep warm near-black that is deliberately NOT the same value
+     as `--raw-canvas-dark`, so the transition from story to tool is a visible
+     edge rather than a seam that dissolves.
+
+     The band is theme-INDEPENDENT on purpose. A title sequence that changes
+     colour when you flip the reading-comfort switch is not a title sequence.
+     Its ink and muted values are reused from the dark raw layer, which is
+     already contrast-checked; only the accent is new, because the brand accent
+     is too dark to carry type on near-black.
+     --------------------------------------------------------------------- */
+  --raw-band: #14130f;
+  --raw-band-deep: #0b0a08;
+  --raw-band-ink: #ede9df;
+  --raw-band-ink-muted: #a29c90;
+  --raw-band-rule: #33312a;
+  /* 9.01:1 on --raw-band. The dark-theme accent only reaches 4.80:1, which is
+     fine for a control and not fine for a 96px wordmark. */
+  --raw-band-accent: #6fc3b8;
+  /* Two light sources. Alpha lives here, in tokens, because theme:lint
+     refuses a colour function at a call site — and it should. */
+  --raw-band-glow-accent: rgb(111 195 184 / 0.18);
+  --raw-band-glow-warm: rgb(226 186 138 / 0.14);
+  --raw-band-scrim: rgb(11 10 8 / 0.62);
+
+  /* ---------------------------------------------------------------------
      2. SEMANTIC
      A name plus a role. This is what components reference.
 
@@ -129,6 +161,18 @@
   --on-alarm: var(--raw-surface);
   --on-fit: var(--raw-surface);
 
+  /* The night band. Declared once and NOT re-declared in either dark block
+     below, because it does not respond to the theme. See 1c. */
+  --band: var(--raw-band);
+  --band-deep: var(--raw-band-deep);
+  --band-ink: var(--raw-band-ink);
+  --band-ink-muted: var(--raw-band-ink-muted);
+  --band-rule: var(--raw-band-rule);
+  --band-accent: var(--raw-band-accent);
+  --band-glow-accent: var(--raw-band-glow-accent);
+  --band-glow-warm: var(--raw-band-glow-warm);
+  --band-scrim: var(--raw-band-scrim);
+
   /* ---------------------------------------------------------------------
      3. TYPE — three roles, paired deliberately.
 
@@ -161,6 +205,21 @@
   --fs-display: calc(2rem * var(--fs-scale-display) * var(--fs-root));
   --fs-display-lg: calc(2.75rem * var(--fs-scale-display) * var(--fs-root));
   --fs-title: calc(1.25rem * var(--fs-scale-display) * var(--fs-root));
+
+  /* The narrative scale. Two steps only, and both fluid.
+
+     WHY FLUID RATHER THAN MORE FIXED STEPS. A wordmark that is 96px on a
+     desktop and 96px on a phone is a wordmark that either overflows or is
+     absurd. `clamp` with a vw term lets one declaration serve every width,
+     which is why there is no `--fs-hero-sm` to keep in sync.
+
+     The scale multiplier is still applied, so the reading-comfort control
+     rescales the hero along with everything else. The vw term sits INSIDE the
+     calc and OUTSIDE the scale, so a reader who turns display scaling up gets
+     a hero that grows relative to its fluid base rather than one that jumps
+     to a different clamp. */
+  --fs-hero: calc(clamp(2.75rem, 8.4vw, 5.75rem) * var(--fs-scale-display) * var(--fs-root));
+  --fs-hero-sm: calc(clamp(1.75rem, 4.6vw, 3rem) * var(--fs-scale-display) * var(--fs-root));
 
   --lh-tight: 1.15;
   --lh-snug: 1.35;
@@ -513,6 +572,16 @@ body {
   --color-on-accent: var(--on-accent);
   --color-on-alarm: var(--on-alarm);
   --color-on-fit: var(--on-fit);
+
+  /* The night band. Bridged like any other colour so the narrative can be
+     written with `bg-band` / `text-band-ink` rather than a wall of arbitrary
+     values in a component stylesheet. */
+  --color-band: var(--band);
+  --color-band-deep: var(--band-deep);
+  --color-band-ink: var(--band-ink);
+  --color-band-ink-muted: var(--band-ink-muted);
+  --color-band-rule: var(--band-rule);
+  --color-band-accent: var(--band-accent);
 
   --font-display: var(--font-display);
   --font-ui: var(--font-ui);

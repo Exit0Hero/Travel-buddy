@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type {
   ContextChange,
@@ -23,6 +23,7 @@ import { Sheet } from "@/components/ui/Overlays";
 import { LearnedWeights, ResultCard, WhyLedger } from "@/components/fit";
 
 import { CONTEXT_TRIGGERS } from "../_fixtures";
+import { ASK_ATHITI_EVENT } from "./narrative/AthitiNav";
 import { AccessibilityControls } from "./AccessibilityControls";
 import { ChatSidecar } from "./ChatSidecar";
 import { MapPanel } from "./MapPanel";
@@ -73,6 +74,20 @@ export function DiscoverySurface({
   const [chatOpen, setChatOpen] = useState(false);
   const [lastChange, setLastChange] = useState<ContextChange | null>(null);
   const [announcement, setAnnouncement] = useState("");
+
+  /*
+    "Ask Athiti" lives in the navigation at the top of the page, and this
+    surface's chat state lives here. Rather than lift the chat state up through
+    a server component, the nav dispatches one event and this listens for it.
+    The alternative — threading `chatOpen` through `page.tsx` — would make a
+    server component own product state, which is the wrong direction of
+    dependency for no benefit.
+  */
+  useEffect(() => {
+    const onAsk = () => setChatOpen(true);
+    window.addEventListener(ASK_ATHITI_EVENT, onAsk);
+    return () => window.removeEventListener(ASK_ATHITI_EVENT, onAsk);
+  }, []);
 
   const experienceById = useMemo(() => {
     const map = new Map(experiences.map((item) => [item.id, item]));

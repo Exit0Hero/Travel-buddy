@@ -161,10 +161,16 @@ const KNOWN_TOKENS = new Set([
   "alarm", "alarm-soft", "fit", "fit-soft", "warn", "warn-soft", "info", "info-soft",
   "shadow-1", "shadow-2", "scrim", "focus", "ink-inverse", "on-accent", "on-alarm", "on-fit",
   "mask-solid",
+  // The night band, used by the narrative half of the home page. One extra
+  // surface that is deliberately theme-independent — see tokens.css 1c.
+  "raw-band", "raw-band-deep", "raw-band-ink", "raw-band-ink-muted", "raw-band-rule",
+  "raw-band-accent", "raw-band-glow-accent", "raw-band-glow-warm", "raw-band-scrim",
+  "band", "band-deep", "band-ink", "band-ink-muted", "band-rule", "band-accent",
+  "band-glow-accent", "band-glow-warm", "band-scrim",
   // type
   "font-display", "font-ui", "font-data", "fs-root", "fs-scale-body", "fs-scale-meta",
   "fs-scale-display", "fs-scale-num", "fs-body", "fs-body-lg", "fs-meta", "fs-meta-sm",
-  "fs-num", "fs-num-sm", "fs-display", "fs-display-lg", "fs-title", "lh-tight", "lh-snug",
+  "fs-num", "fs-num-sm",   "fs-display", "fs-display-lg", "fs-title", "fs-hero", "fs-hero-sm", "lh-tight", "lh-snug",
   "lh-body", "lh-loose", "tracking-caps", "tracking-tight",
   // space + radius
   "space-1", "space-2", "space-3", "space-4", "space-5", "space-6", "space-8", "space-10",

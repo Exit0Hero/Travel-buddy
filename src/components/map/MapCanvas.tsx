@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { Ref } from "react";
 import type { MapRef } from "react-map-gl/maplibre";
 
 import type { GeoPoint } from "@/contracts";
@@ -38,6 +39,19 @@ const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 /** Mumbai. Overridden by `initialCentre` when the caller has a real context. */
 const FALLBACK_CENTRE: GeoPoint = { lat: 18.9388, lon: 72.8354 };
 
+/**
+ * The dynamically-imported `Map`, typed to accept a ref.
+ *
+ * `react-map-gl`'s `Map` is a `forwardRef` component whose ref resolves to its
+ * own `MapRef` wrapper — the object that carries `getMap()`, `getCenter()`,
+ * `flyTo()` and the rest. That wrapper is NOT the `maplibregl.Map` underneath
+ * it, and the distinction is the whole reason this type exists.
+ */
+type MapComponent = React.ComponentType<{
+  ref?: Ref<MapRef | null>;
+  [prop: string]: unknown;
+}>;
+
 export interface MapCanvasProps {
   initialCentre?: GeoPoint;
   initialZoom?: number;
@@ -61,8 +75,43 @@ export function MapCanvas({
   interactive = true,
 }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [Map, setMap] = useState<React.ComponentType<Record<string, unknown>> | null>(null);
+  const [Map, setMap] = useState<MapComponent | null>(null);
   const mapRef = useRef<MapRef | null>(null);
+  const reportedRef = useRef<MapRef | null>(null);
+
+  /*
+    WHY A CALLBACK REF *AND* `onLoad`. Two different facts, two different hooks.
+
+    This previously read the map out of a MapLibre load event:
+
+        onLoad={(event) => { mapRef.current = event.target as MapRef; }}
+
+    `event.target` there is the raw `maplibregl.Map`, not react-map-gl's `MapRef`
+    wrapper. The `as MapRef` cast satisfied the compiler and lied at runtime, and
+    the first consumer to call `mapRef.getMap()` — `ClusterLayer` on mount —
+    threw `mapRef.getMap is not a function` and took the whole page down with
+    it. The cast is what hid it: a ref handed over by the component itself
+    cannot be the wrong shape. So the instance now arrives via `ref`.
+
+    But the ref resolves as soon as the component mounts, which is *before* the
+    style finishes loading, and the layers call `addSource` the moment they are
+    handed a map. Announcing readiness from the ref alone therefore fails the
+    other way with `Style is not done loading`. So readiness stays on `load`,
+    which is what the prop has always claimed to mean, and it now forwards the
+    ref-captured instance.
+
+    `reportedRef` keeps `onMapReady` to one call per instance.
+  */
+  const attachMap = useCallback((instance: MapRef | null) => {
+    if (instance) mapRef.current = instance;
+  }, []);
+
+  const announceMap = useCallback(() => {
+    const instance = mapRef.current;
+    if (!instance || reportedRef.current === instance) return;
+    reportedRef.current = instance;
+    onMapReady?.(instance);
+  }, [onMapReady]);
 
   useEffect(() => {
     // `react-map-gl/maplibre` is loaded client-side only. Importing it at the
@@ -71,7 +120,7 @@ export function MapCanvas({
     let cancelled = false;
     void import("react-map-gl/maplibre").then((mod) => {
       if (cancelled) return;
-      const Component = (mod.default ?? mod.Map) as React.ComponentType<Record<string, unknown>>;
+      const Component = (mod.default ?? mod.Map) as MapComponent;
       setMap(() => Component);
     });
     return () => {
@@ -107,10 +156,8 @@ export function MapCanvas({
         // Reuse the canvas across renders — recreating it on every parent
         // render is the single biggest cause of jank in a map this small.
         reuseMaps
-        onLoad={(event: { target: unknown }) => {
-          mapRef.current = event.target as MapRef;
-          onMapReady?.(mapRef.current);
-        }}
+        ref={attachMap}
+        onLoad={announceMap}
         style={{ width: "100%", height: "100%" }}
       />
     </div>
