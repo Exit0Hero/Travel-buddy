@@ -4,6 +4,20 @@ import type { ReactNode } from "react";
 import { ThemeScript } from "./_components/ThemeScript";
 
 import "../styles/globals.css";
+/*
+  motion.css is imported HERE, not from inside globals.css, and that is not a
+  stylistic preference. Adding a third `@import` to globals.css — after
+  `tailwindcss` and `tokens.css` — makes the PostCSS/Tailwind import chain
+  silently drop `tokens.css` from the ENTIRE build. Every route then loses the
+  design system, `next build` still exits 0, and every gate in the repo still
+  passes. It was found only by counting the emitted CSS bytes per route, not by
+  running the gates.
+
+  Importing it as a sibling of globals.css keeps the two-file chain exactly as
+  it was, and puts the motion stylesheet on the same footing as every other
+  stylesheet in the app.
+*/
+import "../styles/motion.css";
 
 export const metadata: Metadata = {
   title: {

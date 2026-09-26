@@ -33,7 +33,7 @@ export function ThemeScript() {
   const script = `(function(){try{
 var p=${JSON.stringify(DEFAULT_PREFS)};
 var raw=localStorage.getItem(${JSON.stringify(STORAGE_KEY)});
-if(raw){var s=JSON.parse(raw);if(s&&typeof s==="object"){p=Object.assign(p,s);if(s.fontScale){p.fontScale=Object.assign(p.fontScale,s.fontScale);}}}}
+if(raw){var s=JSON.parse(raw);if(s&&typeof s==="object"){p=Object.assign(p,s);if(s.fontScale){p.fontScale=Object.assign(p.fontScale,s.fontScale);}}}
 var r=document.documentElement;
 var t=p.theme==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):p.theme;
 r.setAttribute("data-theme",t);
